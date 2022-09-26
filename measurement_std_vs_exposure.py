@@ -34,7 +34,7 @@ registers = {
     '0202': '00A0',     # COARSE_INTEGRATION_TIME
 }
 
-for gain in list(range(0, 1023, 32)) + [1023]:
+for gain in [1000, 1010, 1015, 1021, 1022, 1023]:
     gain_hex = hex(gain)[2:].zfill(4)
     registers['0204'] = gain_hex
 
