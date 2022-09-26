@@ -12,6 +12,7 @@ registers = {
 
     # Exposure time:
     '0202': '00A0',     # COARSE_INTEGRATION_TIME
+    '0342': '31C4',     # LINE_LENGTH_PCK
 }
 
 
