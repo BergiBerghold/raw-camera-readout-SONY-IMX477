@@ -15,7 +15,7 @@ registers = {
 }
 
 
-def capture_frame(overwrite_registers=None, return_exposure_time=False):
+def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=False):
     if overwrite_registers:
         for key, value in overwrite_registers.items():
             registers[key] = value
@@ -26,7 +26,6 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False):
         registers_str = ';'.join([f'{k},{v}' for k, v in registers.items()])
 
     exposure_time = int(registers['0202'], base=16) * 12.74 / 1000000
-    print(f'Expected exposure time is {exposure_time:.4f}s')
 
     cmd = ['ssh',
            'exppi',
@@ -37,10 +36,21 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False):
            f'-t {exposure_time * 1000 + 500}',
            '-o /dev/stdout']
 
-    process = Popen(' '.join(cmd), stdout=PIPE, shell=True)
+    if os.getenv('CMOSPI'):
+        cmd = cmd[2:]
+
+    if verbose:
+        print(f'Expected exposure time is {exposure_time:.4f}s')
+        print(' '.join(cmd))
+        pipe_stderr = None
+    else:
+        pipe_stderr = PIPE
+
+    process = Popen(' '.join(cmd), stdout=PIPE, stderr=pipe_stderr, shell=True)
     stdout, stderr = process.communicate()
 
-    print('Frame acquired')
+    if verbose:
+        print('Frame acquired')
 
     frame = stdout[:(3072 * 1520)]
     image_array = []
@@ -74,7 +84,7 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False):
 
 
 if __name__ == '__main__':
-    image = capture_frame()
+    image = capture_frame(verbose=True)
 
     plt.imshow(image, cmap='gray', vmin=0, vmax=2**12 - 1)
     plt.show()
