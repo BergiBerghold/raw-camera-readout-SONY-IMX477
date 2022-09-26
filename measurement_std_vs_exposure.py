@@ -38,7 +38,7 @@ for gain in list(range(0, 1023, 32)) + [1023]:
     gain_hex = hex(gain)[2:].zfill(4)
     registers['0204'] = gain_hex
 
-    for exposure in [65532]:
+    for exposure in list(range(0, 65535, 5000)) + [65535]:
         exposure_hex = hex(exposure)[2:].zfill(4)
         registers['0202'] = exposure_hex
 

@@ -8,11 +8,11 @@ import os
 
 registers = {
     # Analog Gain:
-    '0204': hex(1023)[2:].zfill(4),     # max. working 1023
+    '0204': hex(1)[2:].zfill(4),     # max. working 1023
 
     # Exposure time:
-    '0202': '00A0',     # COARSE_INTEGRATION_TIME
-    '0342': '31C4',     # LINE_LENGTH_PCK
+    '0202': '000A',     # COARSE_INTEGRATION_TIME
+    '0342': 'FFFF',     # LINE_LENGTH_PCK               default 31C4
 }
 
 
@@ -26,7 +26,14 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
     else:
         registers_str = ';'.join([f'{k},{v}' for k, v in registers.items()])
 
-    exposure_time = int(registers['0202'], base=16) * 12.74 / 1000000
+    FINE_INTEG_Time = 1936
+    IVTPXCK_period = 1 / (250 * 10 ** 6)
+
+    LINE_LENGTH_PCK = int(registers['0342'], base=16)
+    COARSE_INTEGRATION_TIME = int(registers['0202'], base=16)
+
+    Tline = LINE_LENGTH_PCK * IVTPXCK_period / 4
+    exposure_time = Tline * (COARSE_INTEGRATION_TIME + FINE_INTEG_Time / LINE_LENGTH_PCK)
 
     cmd = ['ssh',
            'exppi',
@@ -34,7 +41,7 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
            '-y 10',
            '-md 1',
            f'--regs "{registers_str}"',
-           f'-t {exposure_time * 1000 + 500}',
+           f'-t {int(exposure_time * 1000 + 1000)}',
            '-o /dev/stdout']
 
     if os.getenv('CMOSPI'):
