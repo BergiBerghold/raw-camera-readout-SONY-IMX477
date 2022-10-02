@@ -43,7 +43,6 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
            'vacpi',
            '/home/pi/raspiraw_hermann/raspiraw',
            '-y 10',
-           '-md 0',
            f'--regs "{registers_str}"',
            f'-t {int(exposure_time * 1000 + 1000)}',
            '-o /dev/stdout']
