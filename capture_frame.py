@@ -11,8 +11,9 @@ registers = {
     '0204': hex(1)[2:].zfill(4),     # max. working 1023
 
     # Exposure time:
-    '0202': '000A',     # COARSE_INTEGRATION_TIME
+    '0202': 'FFFF',     # COARSE_INTEGRATION_TIME
     '0342': 'FFFF',     # LINE_LENGTH_PCK               default 31C4
+    '3100': '07',       # Shift Register?
 }
 
 
@@ -31,15 +32,18 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
 
     LINE_LENGTH_PCK = int(registers['0342'], base=16)
     COARSE_INTEGRATION_TIME = int(registers['0202'], base=16)
+    SHIFT = int(registers['3100'], base=16)
+
+    COARSE_INTEGRATION_TIME *= 2**(SHIFT)
 
     Tline = LINE_LENGTH_PCK * IVTPXCK_period / 4
     exposure_time = Tline * (COARSE_INTEGRATION_TIME + FINE_INTEG_Time / LINE_LENGTH_PCK)
 
     cmd = ['ssh',
            'exppi',
-           '/home/pi/raspiraw/raspiraw',
+           '/home/pi/hermann/raspiraw/raspiraw',
            '-y 10',
-           '-md 1',
+           '-md 2',
            f'--regs "{registers_str}"',
            f'-t {int(exposure_time * 1000 + 1000)}',
            '-o /dev/stdout']
@@ -96,3 +100,5 @@ if __name__ == '__main__':
 
     plt.imshow(image, cmap='gray', vmin=0, vmax=2**12 - 1)
     plt.show()
+
+    #test
