@@ -41,7 +41,7 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
 
     cmd = ['ssh',
            'exppi',
-           '/home/pi/hermann/raspiraw/raspiraw',
+           '/home/pi/raspiraw_hermann/raspiraw',
            '-y 10',
            '-md 2',
            f'--regs "{registers_str}"',
