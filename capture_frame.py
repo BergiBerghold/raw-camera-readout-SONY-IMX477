@@ -11,9 +11,9 @@ registers = {
     '0204': hex(1)[2:].zfill(4),     # max. working 1023
 
     # Exposure time:
-    '0202': 'FFFF',     # COARSE_INTEGRATION_TIME
+    '0202': '0008',     # COARSE_INTEGRATION_TIME
     '0342': 'FFFF',     # LINE_LENGTH_PCK               default 31C4
-    '3100': '07',       # Shift Register?
+    '3100': '00',       # Shift Register?
 }
 
 
@@ -40,10 +40,10 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
     exposure_time = Tline * (COARSE_INTEGRATION_TIME + FINE_INTEG_Time / LINE_LENGTH_PCK)
 
     cmd = ['ssh',
-           'exppi',
+           'vacpi',
            '/home/pi/raspiraw_hermann/raspiraw',
            '-y 10',
-           '-md 2',
+           '-md 0',
            f'--regs "{registers_str}"',
            f'-t {int(exposure_time * 1000 + 1000)}',
            '-o /dev/stdout']
@@ -62,15 +62,15 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
     stdout, stderr = process.communicate()
 
     if verbose:
-        print('Frame acquired')
+        print(f'Frame acquired')
 
-    frame = stdout[:(3072 * 1520)]
+    frame = stdout[:(6112 * 3040)]
     image_array = []
 
     with io.BytesIO(frame) as f:
         while True:
-            row = f.read(3042)  # = 2028 * 12/8
-            _ = f.read(30)  # Discard unused bits at the end of each row
+            row = f.read(6084)  # = 4056 * 12/8
+            _ = f.read(28)  # Discard unused bits at the end of each row
 
             if not row:
                 break
@@ -85,7 +85,7 @@ def capture_frame(overwrite_registers=None, return_exposure_time=False, verbose=
                 image_array += [Pixel_1, Pixel_2]
 
     np_image_array = np.array(image_array, dtype=np.uint16)
-    np_image_array = np_image_array.reshape(1520, 2028)
+    np_image_array = np_image_array.reshape(3040, 4056)
 
     del image_array, frame, stdout
 
